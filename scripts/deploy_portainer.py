@@ -55,9 +55,8 @@ def parse_environment_file(environment_file, stack_file_content):
     for var in environment:
         name, value = var[0], var[1]
         # Check if the variable name is used in the stack file (e.g., ${NAME})
-        value = value.replace("\n", "")
         if re.search(rf'\${{{name}}}', stack_file_content):
-            used_environment.append({"name": name, "value": value})
+            used_environment.append({"name": name, "value": value.replace("\n", "").replace("\r", "").replace("\t", "").replace("'", "")})
 
     return used_environment
 
