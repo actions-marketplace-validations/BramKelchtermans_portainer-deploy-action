@@ -30,9 +30,9 @@ def create_stack(portainer_url, api_key, environment_id, stack_name, compose_fil
     if(environment_file_path is not None and environment_file_path != ""):
         environmentVars = parse_environment_file(environment_file_path, data['stackFileContent'])
         data['env'] = environmentVars
-    
+
     data['name'] = stack_name
-    
+
     response = requests.post(f'{portainer_url}/api/stacks/create/standalone/string?endpointId=' + str(environment_id), headers=headers, json=data, verify=False)
 
     # response = requests.post(f'{portainer_url}/api/stacks?type=2&method=repository&endpointId=' + str(environment_id), headers=headers, json=data, verify=False)
@@ -42,31 +42,32 @@ def parse_environment_file(environment_file, stack_file_content):
     # Read the .env file
     with open(environment_file, 'r') as file:
         environment = file.read()
-        
+
     # Split lines and filter out empty ones
     environment = environment.split('\n')
     environment = [x for x in environment if x]
-    
+
     # Split each line into a name-value pair
     environment = [x.split('=') for x in environment]
-    
+
     # Filter out the variables that are used in the stack_file_content
     used_environment = []
     for var in environment:
         name, value = var[0], var[1]
         # Check if the variable name is used in the stack file (e.g., ${NAME})
+        value = value.replace("\n", "")
         if re.search(rf'\${{{name}}}', stack_file_content):
             used_environment.append({"name": name, "value": value})
-    
+
     return used_environment
 
 def update_stack(portainer_url, endpoint_id, api_key, stack_id, file_path, environment_file):
     headers = {
         'X-API-Key': f'{api_key}'
     }
-    
+
     data = {}
-    
+
     with open(file_path, 'r') as file:
         compose_file = file.read()
         data['stackFileContent'] = compose_file
@@ -74,11 +75,11 @@ def update_stack(portainer_url, endpoint_id, api_key, stack_id, file_path, envir
     if environment_file is not None and environment_file != "":
         environment = parse_environment_file(environment_file, compose_file)
         data['env'] = environment
-    
-        
+
+
     update_url = f'{portainer_url}/api/stacks/{stack_id}?endpointId={endpoint_id}'
     response = requests.put(update_url, headers=headers, json=data, verify=False)
-        
+
     print(f"Updating stack {stack_id} with compose file {file_path}...")
     return response.status_code, response.text
 
