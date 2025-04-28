@@ -39,6 +39,10 @@ def create_stack(portainer_url, api_key, environment_id, stack_name, compose_fil
     return response.status_code, response.json()
 
 def parse_environment_file(environment_file, stack_file_content):
+    # Return empty list if environment_file is None
+    if environment_file is None:
+        return []
+
     # Read the .env file
     with open(environment_file, 'r') as file:
         environment = file.read()
@@ -95,8 +99,17 @@ def main():
     changed_files_path = sys.argv[3]
     environment_file = sys.argv[4]
 
+    # Check if environment_file is empty or set to 'default' and handle it properly
+    if not environment_file or environment_file == 'default':
+        environment_file = None
+
     if not changed_files_path or not os.path.isfile(changed_files_path):
         print(f"Changed files path is invalid or file not found: {changed_files_path}")
+        sys.exit(1)
+
+    # If environment_file is provided and not None, check if it exists
+    if environment_file and not os.path.isfile(environment_file):
+        print(f"Environment file not found: {environment_file}")
         sys.exit(1)
 
     with open(changed_files_path, 'r') as file:
