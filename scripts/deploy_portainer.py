@@ -51,12 +51,14 @@ def parse_environment_file(environment_file, stack_file_content):
     environment = environment.split('\n')
     environment = [x for x in environment if x]
 
-    # Split each line into a name-value pair
-    environment = [x.split('=') for x in environment]
+    # Split each line into a name-value pair (only on first '=', values may contain '=')
+    environment = [x.split('=', 1) for x in environment]
 
     # Filter out the variables that are used in the stack_file_content
     used_environment = []
     for var in environment:
+        if len(var) < 2:
+            continue
         name, value = var[0], var[1]
         # Check if the variable name is used in the stack file (e.g., ${NAME})
         if re.search(rf'\${{{name}}}', stack_file_content):
